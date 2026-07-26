@@ -4,7 +4,8 @@
     "version": "0.1",
     "description": "Captures subtitles while you watch and builds a vocabulary list.",
     "host_permissions": [
-      "*://*.netflix.com/*"
+      "*://*.netflix.com/*",
+      "http://localhost:5000/*"
     ],
     "content_scripts": [
       {
