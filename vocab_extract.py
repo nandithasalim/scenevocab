@@ -11,9 +11,31 @@ PROMPT_TEMPLATE = """You are helping a non-native English speaker build vocabula
 
 Below is a chunk of subtitle lines with timestamps (in seconds) and line numbers.
 
-For this chunk, find words and phrases (including idioms, phrasal verbs, slang)
-that would be genuinely useful new vocabulary for an English learner.
-Skip common everyday words (the, go, happy, etc). Aim for ~3-8 items per chunk.
+Find words and phrases that are genuinely worth learning. Skip anything a
+beginner already knows from everyday life — common verbs, basic adjectives,
+simple nouns (examples of words to SKIP entirely: curious, valuable, robbed,
+happy, go, help, tired, angry). If a word is that simple, do not include it
+at all, even as "beginner" - it doesn't belong in this list.
+
+For words/phrases you do include, classify difficulty using these calibration
+examples as your reference point:
+
+- "beginner": simple but not trivial - a learner past total-beginner level
+  would still gain something from it. Examples: "sitting on" (as in owning
+  something quietly), "backfire", "overwhelmed". NOT words like "curious" or
+  "valuable" - those are too basic to include at all.
+
+- "intermediate": phrases genuinely useful in everyday adult conversation,
+  the kind a fluent-but-non-native speaker would want in their active
+  vocabulary. Examples: "collateral damage", "rendezvous", "ulterior motive",
+  "read between the lines". Most of what you extract should land here - this
+  is the default/most valuable tier.
+
+- "advanced": rare, formal, or hard-to-pronounce words not used in normal
+  conversation - the kind used by highly educated/elite speakers, unlikely to
+  come up casually. Examples: "vicissitude", "perspicacious", "obsequious".
+
+Aim for ~3-8 items per chunk, weighted toward "intermediate".
 
 For each item return JSON with these fields:
 - "term": the word or phrase
@@ -23,7 +45,8 @@ For each item return JSON with these fields:
 - "next_line": the subtitle line just after it (empty string if none)
 - "meaning": a clear, simple definition
 - "why_used": one sentence on why this word/phrase fits the scene/tone
-- "difficulty": one of "beginner", "intermediate", "advanced"
+- "difficulty": one of "beginner", "intermediate", "advanced" - calibrated
+  strictly against the examples above
 
 Return ONLY a JSON array, no other text.
 
