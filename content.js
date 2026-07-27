@@ -38,7 +38,7 @@ function sendTranscript() {
     return;
   }
 
-  fetch("http://localhost:5000/transcript", {
+  fetch("https://scenevocab.onrender.com/transcript", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
@@ -67,6 +67,22 @@ function watchForVideoEnd() {
 
   setTimeout(watchForVideoEnd, 3000);
 }
+// Flush whenever the tab becomes hidden (switching tabs, minimizing, etc.)
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden) {
+    sendTranscript();
+  }
+});
+
+// Flush right before the page/tab actually closes
+window.addEventListener("beforeunload", () => {
+  sendTranscript();
+});
+
+// Safety net: flush every 5 minutes regardless, in case none of the above catch it
+setInterval(() => {
+  sendTranscript();
+}, 5 * 60 * 1000);
 
 startWatching();
 watchForVideoEnd();
