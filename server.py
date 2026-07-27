@@ -2,10 +2,11 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import List
-from dotenv import load_dotenv
-load_dotenv()
+
 from extract import Segment
+from vocab_extract import extract_vocab
 from store import add_entries, all_entries, init_db
+
 app = FastAPI()
 
 app.add_middleware(
@@ -37,14 +38,21 @@ async def health():
     return {"status": "ok", "word_count": len(entries)}
 
 
-from tasks import process_transcript
-
 @app.post("/transcript")
 async def receive_transcript(payload: TranscriptPayload):
     if not payload.segments:
         return {"status": "empty", "added": 0}
 
-    segments = [s.dict() for s in payload.segments]
-    process_transcript.delay(payload.source_title, segments)
+    segments = [Segment(s.time, s.time, s.text) for s in payload.segments]
 
-    return {"status": "accepted", "message": "Processing in background"}
+    print(f"[server] received {len(segments)} caption lines from '{payload.source_title}'")
+
+    try:
+        vocab_entries = await extract_vocab(segments, payload.source_title)
+    except Exception as e:
+        print(f"[server] LLM extraction failed: {e}")
+        return {"status": "error", "error": str(e)}
+
+    added = await add_entries(vocab_entries)
+    print(f"[server] added {added} new vocab entries")
+    return {"status": "ok", "extracted": len(vocab_entries), "added": added}
