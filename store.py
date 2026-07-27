@@ -9,7 +9,12 @@ raw_url = raw_url.replace("postgresql://", "postgresql+asyncpg://")
 
 parsed = urlparse(raw_url)
 DATABASE_URL = urlunparse(parsed._replace(query=""))
-engine = create_async_engine(DATABASE_URL, connect_args={"ssl": "require"})
+engine = create_async_engine(
+    DATABASE_URL,
+    connect_args={"ssl": "require"},
+    pool_pre_ping=True,
+    pool_recycle=300,
+)
 async_session = async_sessionmaker(engine, expire_on_commit=False)
 
 async def init_db():
