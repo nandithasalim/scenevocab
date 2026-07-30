@@ -47,10 +47,10 @@ async def add_entries(entries: List[Dict]) -> List[Dict]:
         for e in entries:
             result = await session.execute(
                 text("""
-                    INSERT INTO vocab_words (term, meaning, why_used, difficulty, source_title, timestamp_sec)
-                    VALUES (:term, :meaning, :why_used, :difficulty, :source_title, :timestamp_sec)
+                    INSERT INTO vocab_words (term, meaning, why_used, difficulty, source_title, timestamp_sec, example_sentence)
+                    VALUES (:term, :meaning, :why_used, :difficulty, :source_title, :timestamp_sec, :example_sentence)
                     ON CONFLICT (term, source_title) DO NOTHING
-                    RETURNING term, meaning, why_used, difficulty, source_title
+                    RETURNING term, meaning, why_used, difficulty, source_title, example_sentence
                 """),
                 e,
             )

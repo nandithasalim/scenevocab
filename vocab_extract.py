@@ -11,42 +11,34 @@ PROMPT_TEMPLATE = """You are helping a non-native English speaker build vocabula
 
 Below is a chunk of subtitle lines with timestamps (in seconds) and line numbers.
 
-Find words and phrases that are genuinely worth learning. Skip anything a
-beginner already knows from everyday life — common verbs, basic adjectives,
-simple nouns (examples of words to SKIP entirely: curious, valuable, robbed,
-happy, go, help, tired, angry). If a word is that simple, do not include it
-at all, even as "beginner" - it doesn't belong in this list.
+Find words and phrases (idioms, phrasal verbs, slang, less common single words) that are genuinely NEW and USEFUL vocabulary for an English learner. Be strict — most subtitle lines contain zero worthwhile words. Aim for 2-5 items per chunk, not every line.
 
-For words/phrases you do include, classify difficulty using these calibration
-examples as your reference point:
+SKIP entirely — never include these, even as "beginner":
+happy, sad, tired, busy, angry, curious, valuable, robbed, help, walk, talk, see, want,
+go, get, come, look, nice, good, bad, big, small, fast, slow, easy, hard, work, home,
+friend, family, time, day, night, love, like, thing, way, feel, know, think, tell, ask,
+give, take, make, find, use, need, try, call
+Also skip simple phrasal verbs a learner already knows: go on, get up, sit down, come in, look at, wait for.
+Also skip common idioms most learners already know: read between the lines, ulterior motive,
+piece of cake, break the ice, hit the road, once in a blue moon.
 
-- "beginner": simple but not trivial - a learner past total-beginner level
-  would still gain something from it. Examples: "sitting on" (as in owning
-  something quietly), "backfire", "overwhelmed". NOT words like "curious" or
-  "valuable" - those are too basic to include at all.
+If a word or phrase is common enough that an intermediate ESL learner already knows it, SKIP IT.
+"Beginner" does NOT mean "common" — it means a genuinely useful word that's simply easier
+than an intermediate/advanced pick. Follow this calibration closely:
 
-- "intermediate": phrases genuinely useful in everyday adult conversation,
-  the kind a fluent-but-non-native speaker would want in their active
-  vocabulary. Examples: "collateral damage", "rendezvous", "ulterior motive",
-  "read between the lines". Most of what you extract should land here - this
-  is the default/most valuable tier.
+- beginner: reluctant, irritated, postpone, overwhelmed, backfire, hold a grudge
+- intermediate : condescending, elusive, insinuate, meticulous, ambivalent, pragmatic
+- advanced: vicissitude, perspicacious, obsequious, ephemeral, obfuscate, insidious
 
-- "advanced": rare, formal, or hard-to-pronounce words not used in normal
-  conversation - the kind used by highly educated/elite speakers, unlikely to
-  come up casually. Examples: "vicissitude", "perspicacious", "obsequious".
-
-Aim for ~3-8 items per chunk, weighted toward "intermediate".
-
-For each item return JSON with these fields:
+For each item return JSON with:
 - "term": the word or phrase
-- "timestamp_sec": start time (seconds) where it's said
-- "line_said": the exact subtitle line it appears in
-- "prev_line": the subtitle line just before it (empty string if none)
-- "next_line": the subtitle line just after it (empty string if none)
+- "timestamp_sec": start time (seconds)
+- "example_sentence": the EXACT subtitle line it appears in, verbatim
+- "prev_line": subtitle line just before (empty string if none)
+- "next_line": subtitle line just after (empty string if none)
 - "meaning": a clear, simple definition
 - "why_used": one sentence on why this word/phrase fits the scene/tone
-- "difficulty": one of "beginner", "intermediate", "advanced" - calibrated
-  strictly against the examples above
+- "difficulty": "beginner", "intermediate", or "advanced" — follow the calibration above strictly
 
 Return ONLY a JSON array, no other text.
 
