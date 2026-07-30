@@ -41,32 +41,22 @@ async def init_db():
         """))
 
 
-async def add_entries(entries: List[Dict]) -> int:
-    added = 0
+async def add_entries(entries: List[Dict]) -> List[Dict]:
+    added = []
     async with async_session() as session:
         for e in entries:
             result = await session.execute(
                 text("""
-                    INSERT INTO vocab_words
-                        (term, source_title, timestamp_sec, line_said, prev_line, next_line, meaning, why_used, difficulty)
-                    VALUES (:term, :source_title, :timestamp_sec, :line_said, :prev_line, :next_line, :meaning, :why_used, :difficulty)
+                    INSERT INTO vocab_words (term, meaning, why_used, difficulty, source_title, timestamp_sec)
+                    VALUES (:term, :meaning, :why_used, :difficulty, :source_title, :timestamp_sec)
                     ON CONFLICT (term, source_title) DO NOTHING
-                    RETURNING id
+                    RETURNING term, meaning, why_used, difficulty, source_title
                 """),
-                {
-                    "term": e["term"],
-                    "source_title": e.get("source_title"),
-                    "timestamp_sec": e.get("timestamp_sec"),
-                    "line_said": e.get("line_said"),
-                    "prev_line": e.get("prev_line"),
-                    "next_line": e.get("next_line"),
-                    "meaning": e.get("meaning"),
-                    "why_used": e.get("why_used"),
-                    "difficulty": e.get("difficulty", "intermediate"),
-                }
+                e,
             )
-            if result.fetchone() is not None:
-                added += 1
+            row = result.first()
+            if row:
+                added.append(dict(row._mapping))
         await session.commit()
     return added
 
@@ -105,18 +95,40 @@ async def due_for_review(limit: int = 15, difficulty: Optional[str] = None) -> L
         rows = result.mappings().all()
     return [dict(r) for r in rows]
 
+async def get_weekly_quiz(limit=10) -> List[Dict]:
+    half = limit // 2
+    async with async_session() as session:
+        result = await session.execute(text(f"""
+            (SELECT * FROM vocab_words ORDER BY wrong_count DESC LIMIT {half})
+            UNION
+            (SELECT * FROM vocab_words
+             WHERE id NOT IN (SELECT id FROM vocab_words ORDER BY wrong_count DESC LIMIT {half})
+             ORDER BY RANDOM() LIMIT {limit - half})
+        """))
+        return [dict(row._mapping) for row in result]
+
 
 async def record_quiz_result(term: str, source_title: str, correct: bool):
     async with async_session() as session:
-        await session.execute(
-            text("""
-                UPDATE vocab_words
-                SET times_seen = times_seen + 1,
-                    times_correct = times_correct + :correct,
-                    last_quizzed = now(),
-                    mastered = (times_correct + :correct) >= 3
-                WHERE lower(term) = lower(:term) AND source_title = :source_title
-            """),
-            {"correct": int(correct), "term": term, "source_title": source_title}
-        )
+        if correct:
+            await session.execute(
+                text("UPDATE vocab_words SET wrong_count = 0 WHERE term = :term AND source_title = :source_title"),
+                {"term": term, "source_title": source_title},
+            )
+        else:
+            await session.execute(
+                text("UPDATE vocab_words SET wrong_count = wrong_count + 1 WHERE term = :term AND source_title = :source_title"),
+                {"term": term, "source_title": source_title},
+            )
         await session.commit()
+
+async def get_new_words() -> List[Dict]:
+    async with async_session() as session:
+        result = await session.execute(text("""
+            SELECT * FROM vocab_words
+            WHERE source_title = (
+                SELECT source_title FROM vocab_words ORDER BY id DESC LIMIT 1
+            )
+            ORDER BY id DESC
+        """))
+        return [dict(row._mapping) for row in result]
