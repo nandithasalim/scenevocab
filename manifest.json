@@ -5,8 +5,8 @@
     "description": "Captures subtitles while you watch and builds a vocabulary list.",
     "host_permissions": [
       "*://*.netflix.com/*",
-      "https://scenevocab.onrender.com/*",
-      "http://localhost:5000/*"
+      "https://scenevocab.onrender.com/*"
+      
 
     ],
     "content_scripts": [
