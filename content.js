@@ -84,5 +84,15 @@ setInterval(() => {
   sendTranscript();
 }, 5 * 60 * 1000);
 
+function checkForExit() {
+  const newPath = location.pathname;
+  if (isWatchPage(lastPath) && newPath !== lastPath) {
+    console.log("[vocab-builder] left previous watch page, flushing transcript");
+    sendTranscript();
+  }
+  lastPath = newPath;
+}
+
 startWatching();
 watchForVideoEnd();
+checkForExit();
