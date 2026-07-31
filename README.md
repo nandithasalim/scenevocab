@@ -1,4 +1,4 @@
-SceneVocab — Chrome Extension
+**SceneVocab — Chrome Extension**
 
 Passively builds a vocabulary list from the shows and movies you watch on Netflix. While you watch, it captures on-screen subtitle text, sends it to a backend that extracts genuinely useful new vocabulary (with meaning, difficulty level, scene context, and a usage example), and stores it so you can review it later — no manual note-taking required.
 
