@@ -2,6 +2,11 @@ console.log("[vocab-builder] content script loaded on Netflix");
 let capturedLines = [];
 let lastLine = "";
 let userId = null;
+let lastPath = location.pathname;
+
+function isWatchPage(path) {
+  return path.startsWith("/watch/");
+}
 
 function getUserId(callback) {
   chrome.storage.local.get(["vocabUserId"], (result) => {
@@ -20,6 +25,7 @@ getUserId((id) => {
   userId = id;
   console.log("[vocab-builder] user id:", userId);
 });
+
 function findCaptionContainer() {
   return document.querySelector(".player-timedtext");
 }
@@ -86,6 +92,7 @@ function watchForVideoEnd() {
 
   setTimeout(watchForVideoEnd, 3000);
 }
+
 // Flush whenever the tab becomes hidden (switching tabs, minimizing, etc.)
 document.addEventListener("visibilitychange", () => {
   if (document.hidden) {
@@ -112,6 +119,20 @@ function checkForExit() {
   lastPath = newPath;
 }
 
+// Netflix navigates internally via pushState/replaceState — patch both to detect it
+const originalPushState = history.pushState;
+history.pushState = function (...args) {
+  originalPushState.apply(this, args);
+  checkForExit();
+};
+
+const originalReplaceState = history.replaceState;
+history.replaceState = function (...args) {
+  originalReplaceState.apply(this, args);
+  checkForExit();
+};
+
+window.addEventListener("popstate", checkForExit);
+
 startWatching();
 watchForVideoEnd();
-checkForExit();
