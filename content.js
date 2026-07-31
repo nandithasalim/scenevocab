@@ -1,7 +1,25 @@
 console.log("[vocab-builder] content script loaded on Netflix");
 let capturedLines = [];
 let lastLine = "";
+let userId = null;
 
+function getUserId(callback) {
+  chrome.storage.local.get(["vocabUserId"], (result) => {
+    if (result.vocabUserId) {
+      callback(result.vocabUserId);
+    } else {
+      const newId = crypto.randomUUID();
+      chrome.storage.local.set({ vocabUserId: newId }, () => {
+        callback(newId);
+      });
+    }
+  });
+}
+
+getUserId((id) => {
+  userId = id;
+  console.log("[vocab-builder] user id:", userId);
+});
 function findCaptionContainer() {
   return document.querySelector(".player-timedtext");
 }
@@ -34,7 +52,7 @@ function startWatching() {
 }
 
 function sendTranscript() {
-  if (capturedLines.length === 0) {
+  if (capturedLines.length === 0 || !userId) {
     return;
   }
 
@@ -43,7 +61,8 @@ function sendTranscript() {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       source_title: document.title,
-      segments: capturedLines
+      segments: capturedLines,
+      user_id: userId
     })
   })
     .then(response => response.json())

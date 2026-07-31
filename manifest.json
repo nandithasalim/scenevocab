@@ -3,6 +3,7 @@
     "name": "Movie Vocab Builder",
     "version": "0.1",
     "description": "Captures subtitles while you watch and builds a vocabulary list.",
+    "permissions": ["storage"],
     "host_permissions": [
       "*://*.netflix.com/*",
       "https://scenevocab.onrender.com/*"
@@ -20,5 +21,6 @@
        "default_popup": "popup.html",
        "default_title": "SceneVocab"
       }
+    
   
   }
